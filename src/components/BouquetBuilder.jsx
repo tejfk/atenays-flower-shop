@@ -86,12 +86,12 @@ export default function BouquetBuilder() {
     )
 
     return (
-        <div className="bg-white rounded-[3rem] shadow-2xl border border-border/50 overflow-hidden flex flex-col lg:flex-row">
+        <div className="bg-white rounded-3xl md:rounded-[3rem] shadow-2xl border border-border/50 overflow-hidden flex flex-col lg:flex-row mb-12">
             {/* Configuration Form */}
-            <div className="w-full lg:w-[62%] p-8 md:p-12 lg:border-r border-border/40 flex flex-col h-[85vh]">
+            <div className="w-full lg:w-[62%] p-5 md:p-8 lg:p-12 lg:border-r border-border/40 flex flex-col h-auto lg:h-[85vh] relative pb-24 lg:pb-12">
 
                 {/* Wizard Progress Bar */}
-                <div className="mb-12 flex items-center justify-between px-2">
+                <div className="mb-8 lg:mb-12 flex items-center justify-between px-1">
                     {steps.map((s, idx) => (
                         <React.Fragment key={s.id}>
                             <div className="flex flex-col items-center gap-2 relative z-10">
@@ -113,7 +113,7 @@ export default function BouquetBuilder() {
                     ))}
                 </div>
 
-                <div className="flex-1 overflow-y-auto hide-scrollbar px-2">
+                <div className="flex-1 lg:overflow-y-auto hide-scrollbar px-1 md:px-2">
                     <AnimatePresence mode="wait">
                         {currentStep === 1 && (
                             <motion.section
@@ -138,7 +138,7 @@ export default function BouquetBuilder() {
                                         autoFocus
                                     />
                                 </div>
-                                <div className="flex flex-wrap gap-3">
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                     {['500', '1000', '1500', '2500', '5000'].map(val => (
                                         <button
                                             key={val}
@@ -380,7 +380,7 @@ export default function BouquetBuilder() {
                                             placeholder="Write something sweet..."
                                             maxLength={200}
                                             rows={4}
-                                            className="w-full p-8 bg-bg-main border-none rounded-[2.5rem] focus:outline-none focus:ring-2 focus:ring-primary/20 text-text-dark font-medium placeholder:text-text-dark/20 text-lg shadow-inner"
+                                            className="w-full p-5 md:p-8 bg-bg-main border-none rounded-[2rem] focus:outline-none focus:ring-2 focus:ring-primary/20 text-text-dark font-medium placeholder:text-text-dark/20 text-base md:text-lg shadow-inner"
                                         />
                                     </div>
                                     <div>
@@ -390,7 +390,7 @@ export default function BouquetBuilder() {
                                             onChange={(e) => setBespokeRequest(e.target.value)}
                                             placeholder="Any specific requests? (Rare colors, themes, additions)..."
                                             rows={4}
-                                            className="w-full p-8 bg-gradient-to-br from-primary/5 to-transparent border border-primary/10 rounded-[2.5rem] focus:outline-none focus:ring-2 focus:ring-primary/20 text-text-dark font-medium placeholder:text-primary/20 text-lg"
+                                            className="w-full p-5 md:p-8 bg-gradient-to-br from-primary/5 to-transparent border border-primary/10 rounded-[2rem] focus:outline-none focus:ring-2 focus:ring-primary/20 text-text-dark font-medium placeholder:text-primary/20 text-base md:text-lg"
                                         />
                                     </div>
                                 </div>
@@ -400,26 +400,26 @@ export default function BouquetBuilder() {
                 </div>
 
                 {/* Navigation Buttons */}
-                <div className="mt-12 pt-8 border-t border-border/30 flex items-center justify-between">
+                <div className="mt-8 pt-6 border-t border-border/30 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 md:gap-4 z-20">
                     <button
                         onClick={prevStep}
                         disabled={currentStep === 1}
-                        className={`px-8 py-4 rounded-2xl font-bold transition-all ${currentStep === 1 ? 'opacity-0 pointer-events-none' : 'text-text-dark/40 hover:text-text-dark bg-bg-main hover:bg-border/20'}`}
+                        className={`w-full sm:w-auto px-6 lg:px-8 py-3.5 md:py-4 rounded-2xl font-bold transition-all text-center text-sm md:text-base ${currentStep === 1 ? 'opacity-0 pointer-events-none hidden sm:block' : 'text-text-dark/40 hover:text-text-dark bg-bg-main hover:bg-border/20'}`}
                     >
                         Go Back
                     </button>
 
                     {currentStep < 4 ? (
                         <button
-                            onClick={nextStep}
-                            className="px-12 py-4 bg-primary text-white rounded-2xl font-bold hover:bg-primary-dark transition-all shadow-xl shadow-primary/20 hover:-translate-y-1 flex items-center gap-3"
+                            onClick={() => { nextStep(); window.scrollTo({ top: 100, behavior: 'smooth' }); }}
+                            className="w-full sm:w-auto px-6 lg:px-12 py-3.5 md:py-4 bg-primary text-white rounded-2xl font-bold hover:bg-primary-dark transition-all shadow-xl shadow-primary/20 hover:-translate-y-1 flex items-center justify-center gap-3 text-sm md:text-base"
                         >
                             Continue to {steps[currentStep].title} <ArrowRight size={20} />
                         </button>
                     ) : (
                         <button
                             onClick={handleGenerateSummary}
-                            className="px-12 py-4 bg-primary text-white rounded-2xl font-bold hover:bg-primary-dark transition-all shadow-xl shadow-primary/20 hover:-translate-y-1 flex items-center gap-3"
+                            className="w-full sm:w-auto px-6 lg:px-12 py-3.5 md:py-4 bg-primary text-white rounded-2xl font-bold hover:bg-primary-dark transition-all shadow-xl shadow-primary/20 hover:-translate-y-1 flex items-center justify-center gap-3 text-sm md:text-base"
                         >
                             Review & Order <Save size={20} />
                         </button>
@@ -428,7 +428,7 @@ export default function BouquetBuilder() {
             </div>
 
             {/* Live Preview Pane */}
-            <div className="w-full lg:w-[38%] bg-bg-main p-8 md:p-12 flex flex-col relative overflow-hidden">
+            <div className="w-full lg:w-[38%] bg-bg-main p-6 md:p-8 lg:p-12 flex flex-col relative overflow-hidden pb-32">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
                 <div className="sticky top-0 h-full flex flex-col z-10">
                     <div className="flex items-center gap-2 mb-8">
