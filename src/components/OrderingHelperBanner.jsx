@@ -44,11 +44,12 @@ export default function OrderingHelperBanner() {
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-3 md:gap-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-6">
                         {[
                             { step: '1', emoji: '👀', title: 'Browse', desc: 'Look at our bouquets' },
                             { step: '2', emoji: '👆', title: 'Pick', desc: 'Choose what you like' },
-                            { step: '3', emoji: '💬', title: 'Message Us', desc: 'We\'ll handle the rest!' }
+                            { step: '3', emoji: '📥', title: 'Save', desc: 'Save the order summary' },
+                            { step: '4', emoji: '💬', title: 'Message Us', desc: 'We\'ll handle the rest!' }
                         ].map((item) => (
                             <div key={item.step} className="text-center">
                                 <div className="text-3xl mb-2">{item.emoji}</div>

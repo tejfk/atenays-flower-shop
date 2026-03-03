@@ -1,13 +1,33 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { db } from '../firebase/firebaseConfig'
 import { doc, getDoc } from 'firebase/firestore'
 import OrderSummaryModal from './OrderSummaryModal'
 import { Check, Info, Sparkles, Palette, Save, ZoomIn, X, ArrowRight } from 'lucide-react'
+import toast from 'react-hot-toast'
 import useBuilderOptions from '../hooks/useBuilderOptions'
 
 export default function BouquetBuilder() {
     const { options, loading } = useBuilderOptions()
+
+    const [currentStep, setCurrentStep] = useState(1)
+    const [isModalOpen, setIsModalOpen] = useState(false)
+    const [zoomedImage, setZoomedImage] = useState(null)
+
+    const [budget, setBudget] = useState('')
+    const [selectedFlowers, setSelectedFlowers] = useState([])
+    const [wrapper, setWrapper] = useState(null)
+    const [ribbon, setRibbon] = useState(null)
+    const [filler, setFiller] = useState(null)
+    const [message, setMessage] = useState('')
+    const [bespokeRequest, setBespokeRequest] = useState('')
+
+    const steps = [
+        { id: 1, title: 'Budget' },
+        { id: 2, title: 'Flowers' },
+        { id: 3, title: 'Style' },
+        { id: 4, title: 'Details' }
+    ]
 
     const toggleFlower = (name) => {
         setSelectedFlowers(prev =>
