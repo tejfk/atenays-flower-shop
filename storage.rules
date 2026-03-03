@@ -1,0 +1,17 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper function to check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    match /{allPaths=**} {
+      // Anyone can see images (like product photos, customization photos)
+      allow read: if true;
+      // Only authenticated admins (seller) can upload or delete images
+      allow write: if isAuthenticated();
+    }
+  }
+}
