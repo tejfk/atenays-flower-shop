@@ -44,7 +44,7 @@ export default function BatchSummaryModal({ isOpen, onClose }) {
         }
     }
 
-    const generateMessengerLink = () => {
+    const generateMessageContent = () => {
         let message = `Hello Ate Nays! I would like to place a batch order for the following items:\n\n`
 
         cartItems.forEach((item, index) => {
@@ -57,20 +57,24 @@ export default function BatchSummaryModal({ isOpen, onClose }) {
         message += `\nGrand Total: ₱${cartTotal.toLocaleString('en-PH')}\n`
         message += `\nI have saved and attached the image of my receipt summary here.`
 
-        return `https://m.me/fwenKO?text=${encodeURIComponent(message)}`
+        return message
     }
 
-    const handleMessengerClick = () => {
+    const handleMessengerClick = async () => {
         if (!imageSaved) return
 
         setIsOrdering(true)
+        try {
+            await navigator.clipboard.writeText(generateMessageContent())
+        } catch (err) {
+            console.error("Clipboard copy failed:", err)
+        }
+
         setTimeout(() => {
-            window.open(generateMessengerLink(), '_blank', 'noopener,noreferrer')
+            window.open('https://www.facebook.com/messages/t/fwenKO', '_blank', 'noopener,noreferrer')
             setIsOrdering(false)
             onClose() // Close the modal
-            // We do NOT clear the cart automatically just in case they fail to paste or want to adjust. 
-            // They can clear it manually later or it persists.
-        }, 1200)
+        }, 800)
     }
 
     return (

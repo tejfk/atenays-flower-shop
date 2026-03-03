@@ -3,16 +3,22 @@ import { motion } from 'framer-motion'
 import { MessageCircle } from 'lucide-react'
 
 export default function QuickOrderBanner() {
-    const prefilledMessage = encodeURIComponent(
+    const prefilledMessage =
         "Hi Ate Nays! I'd like to order a bouquet. Here are my details:\n\n" +
         "Occasion: \n" +
         "Budget: \n" +
         "Preferred Flowers: \n" +
         "Delivery Date: \n\n" +
         "Thank you! 🌸"
-    )
 
-    const messengerLink = `https://m.me/fwenKO?text=${prefilledMessage}`
+    const handleMessageClick = async () => {
+        try {
+            await navigator.clipboard.writeText(prefilledMessage)
+        } catch (err) {
+            console.error("Clipboard copy failed:", err)
+        }
+        window.open('https://www.facebook.com/messages/t/fwenKO', '_blank', 'noopener,noreferrer')
+    }
 
     return (
         <section className="py-16 md:py-20 bg-transparent relative z-30">
@@ -40,15 +46,13 @@ export default function QuickOrderBanner() {
                             Skip the form — just message us directly! Tell us what you want and we'll handle the rest. It's that easy.
                         </p>
 
-                        <a
-                            href={messengerLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                        <button
+                            onClick={handleMessageClick}
                             className="inline-flex items-center justify-center gap-3 bg-[#00B2FF] hover:bg-[#009AE0] text-white px-10 py-5 rounded-[2rem] font-bold text-lg shadow-xl shadow-[#00B2FF]/20 transition-all hover:-translate-y-1 active:scale-95"
                         >
                             <MessageCircle size={24} />
                             Message Us on Messenger
-                        </a>
+                        </button>
 
                         <p className="text-[10px] text-text-dark/40 font-bold uppercase tracking-[0.15em] mt-5">
                             We reply fast — usually within minutes! 💨

@@ -49,23 +49,29 @@ export default function OrderSummaryModal({ isOpen, onClose, orderData, type = '
         }
     }
 
-    const generateMessengerLink = () => {
+    const generateMessageContent = () => {
         let message = `Hello Ate Nays! I would like to order this bouquet.\n`
         message += `Type: ${isCustom ? 'Custom Build' : orderData.productName || 'Bespoke Item'}\n`
         message += `Total Amount: ₱${total.toLocaleString('en-PH')}\n`
         message += `\nI have saved and attached the image of my summary here.`
 
-        return `https://m.me/fwenKO?text=${encodeURIComponent(message)}`
+        return message
     }
 
-    const handleMessengerClick = () => {
+    const handleMessengerClick = async () => {
         if (!imageSaved) return
 
         setIsOrdering(true)
+        try {
+            await navigator.clipboard.writeText(generateMessageContent())
+        } catch (err) {
+            console.error("Clipboard copy failed:", err)
+        }
+
         setTimeout(() => {
-            window.open(generateMessengerLink(), '_blank', 'noopener,noreferrer')
+            window.open('https://www.facebook.com/messages/t/fwenKO', '_blank', 'noopener,noreferrer')
             setIsOrdering(false)
-        }, 1200)
+        }, 800)
     }
 
     return (
