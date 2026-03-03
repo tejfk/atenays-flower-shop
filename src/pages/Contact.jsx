@@ -30,7 +30,7 @@ const SOCIAL_LINKS = [
             </svg>
         ),
         handle: 'Direct Chat',
-        link: 'https://www.facebook.com/messages/t/fwenKO',
+        link: 'https://m.me/fwenKO',
         color: 'hover:bg-[#00B2FF]',
         desc: 'Chat with our designers for instant quotes.'
     },

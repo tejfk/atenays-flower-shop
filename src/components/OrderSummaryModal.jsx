@@ -55,7 +55,7 @@ export default function OrderSummaryModal({ isOpen, onClose, orderData, type = '
         message += `Total Amount: ₱${total.toLocaleString('en-PH')}\n`
         message += `\nI have saved and attached the image of my summary here.`
 
-        return `https://www.facebook.com/messages/t/fwenKO?text=${encodeURIComponent(message)}`
+        return `https://m.me/fwenKO?text=${encodeURIComponent(message)}`
     }
 
     const handleMessengerClick = () => {

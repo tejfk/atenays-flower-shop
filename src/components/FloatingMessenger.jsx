@@ -10,7 +10,7 @@ export default function FloatingMessenger() {
             className="fixed bottom-8 right-8 z-[100]"
         >
             <a
-                href="https://www.facebook.com/messages/t/fwenKO"
+                href="https://m.me/fwenKO"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group relative flex items-center justify-center"

@@ -200,7 +200,7 @@ export default function ProductModal({ product, isOpen, onClose }) {
                                     <FileText size={18} /> Order Summary
                                 </button>
                                 <a
-                                    href={`https://www.facebook.com/messages/t/fwenKO?text=${msgText}`}
+                                    href={`https://m.me/fwenKO?text=${msgText}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="w-full flex items-center justify-center gap-2 py-3.5 bg-white text-primary border border-primary/30 rounded-xl font-medium hover:bg-primary/5 transition-all text-sm md:text-base"

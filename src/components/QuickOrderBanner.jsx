@@ -12,7 +12,7 @@ export default function QuickOrderBanner() {
         "Thank you! 🌸"
     )
 
-    const messengerLink = `https://www.facebook.com/messages/t/fwenKO?text=${prefilledMessage}`
+    const messengerLink = `https://m.me/fwenKO?text=${prefilledMessage}`
 
     return (
         <section className="py-16 md:py-20 bg-transparent relative z-30">

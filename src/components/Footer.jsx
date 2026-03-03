@@ -22,7 +22,7 @@ export default function Footer() {
                         <a href="#" target="_blank" rel="noopener noreferrer" className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white shadow-sm hover:shadow-md hover:-translate-y-1 hover:text-[#E4405F] transition-all border border-border/40">
                             <Instagram size={20} />
                         </a>
-                        <a href="https://www.facebook.com/messages/t/fwenKO" target="_blank" rel="noopener noreferrer" className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white shadow-sm hover:shadow-md hover:-translate-y-1 hover:text-[#00B2FF] transition-all border border-border/40">
+                        <a href="https://m.me/fwenKO" target="_blank" rel="noopener noreferrer" className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white shadow-sm hover:shadow-md hover:-translate-y-1 hover:text-[#00B2FF] transition-all border border-border/40">
                             <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M12 2C6.36 2 2 6.13 2 11.7c0 2.9 1.18 5.51 3.12 7.42V22l2.76-1.52c1.3.36 2.68.56 4.12.56 5.64 0 10-4.13 10-9.7C22 6.13 17.64 2 12 2zm1.31 12.87l-2.62-2.79-5.11 2.79 5.62-5.96 2.69 2.79 5.03-2.79-5.61 5.96z" />
                             </svg>
