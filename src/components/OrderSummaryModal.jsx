@@ -173,16 +173,15 @@ export default function OrderSummaryModal({ isOpen, onClose, orderData, type = '
                                 </button>
                             </div>
 
-                            <p className="text-[10px] text-center text-text-dark/40 font-bold uppercase tracking-[0.1em] mt-3 leading-relaxed">
-                                {imageSaved
-                                    ? "Perfect! Now click Messenger and paste the image! 🌸"
-                                    : "Step 1: Save the summary image above 📸"}
-
-                            </p>
-                            <div className="mt-6 p-4 bg-primary/5 rounded-2xl border border-primary/10">
-                                <p className="text-[11px] text-center text-primary-dark font-bold uppercase tracking-wider leading-relaxed">
+                            <div className="mt-4 flex flex-col gap-2">
+                                <p className="text-[10px] text-center text-text-dark/40 font-bold uppercase tracking-[0.1em] leading-relaxed">
+                                    {imageSaved
+                                        ? "Perfect! Now click Messenger and paste the image! 🌸"
+                                        : "Step 1: Save the summary image above 📸"}
+                                </p>
+                                <p className="text-[10px] text-center text-text-dark/40 font-bold uppercase tracking-[0.1em] leading-relaxed">
                                     Step 2:<br />
-                                    <span className="text-[10px] lowercase first-letter:uppercase font-medium opacity-80">Message the seller for more transaction details or any request you want to make for your order</span>
+                                    Message the seller for more transaction details or any request you want to make for your order
                                 </p>
                             </div>
                         </div>

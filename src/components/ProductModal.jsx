@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, MessageCircle, FileText, Sparkles, Pencil } from 'lucide-react'
+import { X, ShoppingBag, Pencil, Sparkles, FileText, Zap } from 'lucide-react'
 import { db } from '../firebase/firebaseConfig'
 import { doc } from 'firebase/firestore'
+import { useCart } from '../context/CartContext'
 import OrderSummaryModal from './OrderSummaryModal'
 import toast from 'react-hot-toast'
 
 export default function ProductModal({ product, isOpen, onClose }) {
+    const { addToCart } = useCart()
     const [quantity, setQuantity] = useState(1)
     const [isSummaryOpen, setIsSummaryOpen] = useState(false)
     const [cardMessage, setCardMessage] = useState('')
@@ -37,8 +39,20 @@ export default function ProductModal({ product, isOpen, onClose }) {
         ? `₱${product.minPrice.toLocaleString('en-PH')} - ₱${product.maxPrice.toLocaleString('en-PH')}`
         : `₱${priceNum.toLocaleString('en-PH')}`
 
-    const fullMessage = cardMessage ? `\n\nCard Message: "${cardMessage}"` : ''
-    const msgText = encodeURIComponent(`Hi! I'm interested in the "${product.name}" bouquet (${priceDisplay}).${fullMessage}\n\nCan I customize one similar to it?`)
+    const handleAddToCart = () => {
+        const item = {
+            id: product.id,
+            name: product.name,
+            price: priceNum,
+            quantity: quantity,
+            imageUrl: product.imageUrl,
+            emoji: product.emoji,
+            cardMessage: cardMessage,
+            type: 'catalog'
+        }
+        addToCart(item)
+        onClose()
+    }
 
     const orderData = {
         productId: product.id,
@@ -192,21 +206,19 @@ export default function ProductModal({ product, isOpen, onClose }) {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    onClick={handleAddToCart}
+                                    className="w-full flex items-center justify-center gap-2 py-3.5 bg-white text-primary border-2 border-primary/20 rounded-[1.2rem] font-bold hover:bg-primary/5 transition-all text-sm md:text-base shadow-sm"
+                                >
+                                    <ShoppingBag size={18} /> Add to Cart
+                                </button>
                                 <button
                                     onClick={handleGenerateSummary}
-                                    className="w-full flex items-center justify-center gap-2 py-3.5 bg-primary text-white rounded-xl font-medium hover:bg-primary-dark transition-all shadow-sm"
+                                    className="w-full flex items-center justify-center gap-2 py-3.5 bg-primary text-white rounded-[1.2rem] font-bold hover:bg-primary-dark transition-all transform hover:-translate-y-0.5 shadow-xl shadow-primary/20 text-sm md:text-base"
                                 >
-                                    <FileText size={18} /> Order Summary
+                                    <Zap size={18} /> Quick Order
                                 </button>
-                                <a
-                                    href={`https://m.me/fwenKO?text=${msgText}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="w-full flex items-center justify-center gap-2 py-3.5 bg-white text-primary border border-primary/30 rounded-xl font-medium hover:bg-primary/5 transition-all text-sm md:text-base"
-                                >
-                                    <MessageCircle size={18} /> Customize Similar
-                                </a>
                             </div>
                         </div>
                     </div>

@@ -2,8 +2,8 @@ import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { db } from '../firebase/firebaseConfig'
 import { doc, getDoc } from 'firebase/firestore'
-import OrderSummaryModal from './OrderSummaryModal'
 import { Check, Info, Sparkles, Palette, Save, ZoomIn, X, ArrowRight } from 'lucide-react'
+import OrderSummaryModal from './OrderSummaryModal'
 import toast from 'react-hot-toast'
 import useBuilderOptions from '../hooks/useBuilderOptions'
 
@@ -61,13 +61,6 @@ export default function BouquetBuilder() {
 
     const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1))
 
-    const handleGenerateSummary = () => {
-        if (validateStep(currentStep)) {
-            setIsModalOpen(true)
-            toast.success('Your summary is ready! 🌸')
-        }
-    }
-
     const orderData = {
         budget: `₱${(parseInt(budget) || 0).toLocaleString('en-PH')}`,
         flowers: selectedFlowers.join(', '),
@@ -77,6 +70,13 @@ export default function BouquetBuilder() {
         message,
         bespokeRequest,
         type: 'budget-basis'
+    }
+
+    const handleGenerateSummary = () => {
+        if (validateStep(currentStep)) {
+            setIsModalOpen(true)
+            toast.success('Your summary is ready! 🌸')
+        }
     }
 
     if (loading) return (
