@@ -24,11 +24,11 @@ export default function FloatingMessenger() {
                 </div>
 
                 {/* The Button - Using Messenger SVG */}
-                <div className="relative w-14 h-14 md:w-16 md:h-16 bg-[#00B2FF] text-white rounded-full flex items-center justify-center shadow-[0_8px_32px_rgba(0,178,255,0.4)] transition-all duration-500 hover:scale-110 hover:shadow-[0_12px_48_rgba(0,178,255,0.6)]">
+                <div className="relative w-12 h-12 md:w-16 md:h-16 bg-[#00B2FF] text-white rounded-full flex items-center justify-center shadow-[0_8px_32px_rgba(0,178,255,0.4)] transition-all duration-500 hover:scale-110 hover:shadow-[0_12px_48_rgba(0,178,255,0.6)]">
                     <svg
                         viewBox="0 0 24 24"
                         fill="currentColor"
-                        className="w-8 h-8 md:w-10 md:h-10"
+                        className="w-6 h-6 md:w-10 md:h-10"
                         xmlns="http://www.w3.org/2000/svg"
                     >
                         <path d="M12 2C6.36 2 2 6.13 2 11.7c0 2.9 1.18 5.51 3.12 7.42V22l2.76-1.52c1.3.36 2.68.56 4.12.56 5.64 0 10-4.13 10-9.7C22 6.13 17.64 2 12 2zm1.31 12.87l-2.62-2.79-5.11 2.79 5.62-5.96 2.69 2.79 5.03-2.79-5.61 5.96z" />

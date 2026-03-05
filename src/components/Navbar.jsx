@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Menu, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link, useLocation } from 'react-router-dom'
+import logoImg from '../assets/img/logo.svg'
 
 export default function Navbar() {
     const [isScrolled, setIsScrolled] = useState(false)
@@ -27,21 +28,18 @@ export default function Navbar() {
 
     return (
         <nav
-            className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white/90 backdrop-blur-md shadow-md py-3' : 'bg-transparent py-5'
+            className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-bg-main/40 backdrop-blur-xl border-b border-white/40 shadow-sm py-3' : 'bg-transparent py-5'
                 }`}
         >
             <div className="container mx-auto px-6 max-w-6xl flex justify-between items-center">
                 {/* Logo */}
                 <Link to="/" className="flex items-center gap-2 group">
-                    <motion.div
-                        whileHover={{ rotate: 15 }}
-                        className="text-2xl"
-                    >
-                        🌸
-                    </motion.div>
-                    <span className="font-serif text-2xl font-semibold text-primary-dark group-hover:text-primary transition-colors">
-                        Ate Nays
-                    </span>
+                    <motion.img
+                        whileHover={{ scale: 1.05 }}
+                        src={logoImg}
+                        alt="Ate Nays Logo"
+                        className="h-16 w-auto object-contain drop-shadow-sm rounded-full"
+                    />
                 </Link>
 
                 {/* Desktop Links */}
@@ -92,8 +90,8 @@ export default function Navbar() {
                                 <li key={link.label}>
                                     <Link
                                         to={link.href}
-                                        className={`text-xl transition-colors ${isActive(link.href) ? 'text-primary' : 'text-text-dark hover:text-primary'}`}
                                         onClick={() => setIsOpen(false)}
+                                        className={`text-xl transition-colors ${isActive(link.href) ? 'text-primary' : 'text-text-dark hover:text-primary'}`}
                                     >
                                         {link.label}
                                     </Link>

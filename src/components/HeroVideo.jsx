@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import heroVideo from '../assets/videos/Bloomie.mp4'
+import heroVideo from '../assets/videos/bgvideo.mp4'
 
 export default function HeroVideo() {
     const containerVariants = {
@@ -56,7 +56,7 @@ export default function HeroVideo() {
                         variants={childVariants}
                         className="text-5xl sm:text-7xl md:text-9xl lg:text-[11rem] font-serif text-white mb-8 md:mb-10 leading-none drop-shadow-2xl select-none"
                     >
-                        Ate <span className="text-grad-top" style={{ color: '#FF8A8A' }}>Nays</span><br />
+                        Ate <span className="text-grad-top" style={{ color: '#008cffff' }}>Nays</span><br />
                         <span className="italic font-light text-white/80 text-2xl sm:text-3xl md:text-5xl lg:text-6xl tracking-[0.2em] sm:tracking-widest mt-4 block">Flower Crafts</span>
                     </motion.h1>
 
@@ -64,7 +64,7 @@ export default function HeroVideo() {
                         variants={childVariants}
                         className="text-lg md:text-2xl text-white/70 max-w-2xl mb-16 font-light leading-relaxed drop-shadow-md tracking-wider"
                     >
-                        "Your Flower Crafter." Crafting your surprises with heart and passion ❤️💐 Connecting Emotions ❤️
+                        Your Flower Crafter. Crafting your surprises with heart and passion. Connecting Emotions.
                     </motion.p>
 
                     <motion.div

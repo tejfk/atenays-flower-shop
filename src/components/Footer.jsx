@@ -1,6 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { Facebook, Instagram, MessageCircle } from 'lucide-react'
+import logoImg from '../assets/img/logo.svg'
 
 export default function Footer() {
     return (
@@ -9,8 +10,16 @@ export default function Footer() {
 
                 {/* Brand */}
                 <div className="flex flex-col items-center md:items-start">
-                    <Link to="/" className="text-2xl font-serif font-semibold text-primary-dark mb-6 flex items-center gap-2 group">
-                        <span className="group-hover:rotate-12 transition-transform">🌸</span> Ate Nays Boutique
+                    <Link to="/" className="flex items-center gap-3 mb-6">
+                        <img
+                            src={logoImg}
+                            alt="Ate Nays Logo"
+                            className="w-12 h-12 object-contain rounded-full bg-white p-0.5 group-hover:scale-105 transition-transform"
+                        />
+                        <div className="flex flex-col">
+                            <span className="text-xl font-serif font-semibold text-primary-dark tracking-wide">Ate Nays</span>
+                            <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-accent">Flower Crafts</span>
+                        </div>
                     </Link>
                     <p className="text-sm leading-relaxed mb-8 opacity-70 text-center md:text-left max-w-xs">
                         Crafting artisanal floral experiences with genuine love and the freshest seasonal blooms. Elevating your moments, one arrangement at a time.

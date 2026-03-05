@@ -27,7 +27,7 @@ export default function FloatingCart({ onCheckout }) {
             >
                 <button
                     onClick={() => setIsCartOpen(true)}
-                    className="relative w-14 h-14 md:w-16 md:h-16 bg-white text-primary rounded-full flex items-center justify-center shadow-xl border border-primary/20 transition-all duration-300 hover:scale-110 hover:shadow-primary/30"
+                    className="relative w-12 h-12 md:w-16 md:h-16 bg-white text-primary rounded-full flex items-center justify-center shadow-xl border border-primary/20 transition-all duration-300 hover:scale-110 hover:shadow-primary/30"
                 >
                     <ShoppingBag size={24} className="md:w-7 md:h-7" />
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { db } from '../firebase/firebaseConfig'
 import { doc, getDoc } from 'firebase/firestore'
-import { Check, Info, Sparkles, Palette, Save, ZoomIn, X, ArrowRight } from 'lucide-react'
+import { Check, Info, Sparkles, Palette, Save, ZoomIn, X, ArrowRight, UploadCloud, Image as ImageIcon } from 'lucide-react'
 import OrderSummaryModal from './OrderSummaryModal'
 import toast from 'react-hot-toast'
 import useBuilderOptions from '../hooks/useBuilderOptions'
@@ -22,11 +22,15 @@ export default function BouquetBuilder() {
     const [message, setMessage] = useState('')
     const [bespokeRequest, setBespokeRequest] = useState('')
 
+    // Optional Reference Image State
+    const [referenceImage, setReferenceImage] = useState(null)
+
     const steps = [
         { id: 1, title: 'Budget' },
-        { id: 2, title: 'Flowers' },
-        { id: 3, title: 'Style' },
-        { id: 4, title: 'Details' }
+        { id: 2, title: 'Reference' },
+        { id: 3, title: 'Flowers' },
+        { id: 4, title: 'Style' },
+        { id: 5, title: 'Details' }
     ]
 
     const toggleFlower = (name) => {
@@ -38,15 +42,16 @@ export default function BouquetBuilder() {
     }
 
     const validateStep = (step) => {
-        if (step === 1 && (!budget || parseInt(budget) < 500)) {
-            toast.error("Please set a valid budget (Min ₱500)")
+        if (step === 1 && (!budget || parseInt(budget) < 100)) {
+            toast.error("Please set a valid budget (Min ₱100)")
             return false
         }
-        if (step === 2 && selectedFlowers.length === 0) {
+        // Step 2 is Reference Image, which is optional.
+        if (step === 3 && selectedFlowers.length === 0) {
             toast.error("Please select at least one flower")
             return false
         }
-        if (step === 3 && (!wrapper || !ribbon)) {
+        if (step === 4 && (!wrapper || !ribbon)) {
             toast.error("Please select a wrapper and ribbon")
             return false
         }
@@ -55,14 +60,32 @@ export default function BouquetBuilder() {
 
     const nextStep = () => {
         if (validateStep(currentStep)) {
-            setCurrentStep(prev => Math.min(prev + 1, 4))
+            setCurrentStep(prev => Math.min(prev + 1, steps.length))
         }
     }
 
     const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1))
 
+    // Handle Image Upload with Strict Size Limit
+    const handleImageUpload = (e) => {
+        const file = e.target.files[0]
+        if (file) {
+            // Strict 2MB Limit to prevent Base64 bloat & smooth html2canvas rendering
+            if (file.size > 2 * 1024 * 1024) {
+                toast.error("Image too large! Please upload a file under 2MB.", { duration: 4000 })
+                return
+            }
+            const reader = new FileReader()
+            reader.onloadend = () => {
+                setReferenceImage(reader.result)
+            }
+            reader.readAsDataURL(file)
+        }
+    }
+
     const orderData = {
         budget: `₱${(parseInt(budget) || 0).toLocaleString('en-PH')}`,
+        referenceImage,
         flowers: selectedFlowers.join(', '),
         ribbonColor: ribbon?.name || 'Standard',
         wrapperColor: wrapper?.name || 'Standard',
@@ -125,7 +148,7 @@ export default function BouquetBuilder() {
                             >
                                 <div>
                                     <h3 className="text-3xl font-serif font-bold text-text-dark mb-4">Set Your Budget</h3>
-                                    <p className="text-text-dark/50 text-base font-medium leading-relaxed">This helps us know how grand to make your bouquet. Minimum is ₱500.</p>
+                                    <p className="text-text-dark/50 text-base font-medium leading-relaxed">This helps us know how grand to make your bouquet. Minimum is ₱100.</p>
                                 </div>
                                 <div className="relative group max-w-md">
                                     <span className="absolute left-6 top-1/2 -translate-y-1/2 font-serif font-bold text-3xl text-text-dark/20 group-focus-within:text-primary transition-colors">₱</span>
@@ -138,8 +161,16 @@ export default function BouquetBuilder() {
                                         autoFocus
                                     />
                                 </div>
+                                <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex gap-3 text-sm text-text-dark/80 mt-6 relative overflow-hidden group">
+                                    <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
+                                    <Info className="text-primary shrink-0 mt-0.5" size={18} />
+                                    <p>
+                                        <strong>Note on Pricing:</strong> The budget you set above will cover all <span className="font-bold text-primary">Materials + Labor</span>.
+                                        Labor is ₱150 per dozen for simple wrap local flowers, and starts at ₱300 for fragile or imported flowers.
+                                    </p>
+                                </div>
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                    {['500', '1000', '1500', '2500', '5000'].map(val => (
+                                    {['100', '500', '1000', '1500', '2500'].map(val => (
                                         <button
                                             key={val}
                                             onClick={() => setBudget(val)}
@@ -154,7 +185,52 @@ export default function BouquetBuilder() {
 
                         {currentStep === 2 && (
                             <motion.section
-                                key="step2"
+                                key="step2-reference"
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                className="space-y-8"
+                            >
+                                <div>
+                                    <h3 className="text-3xl font-serif font-bold text-text-dark mb-4">Reference Photo <span className="text-primary/60 text-lg font-medium">(Optional)</span></h3>
+                                    <p className="text-text-dark/50 text-base font-medium leading-relaxed">Have a specific design in mind? Upload a photo and our florists will do their best to match the style within your budget. You can skip this step if you prefer to just pick colors and let us handle the rest.</p>
+                                </div>
+
+                                <div className="border-t border-border pt-8">
+                                    <label className="text-xs font-bold text-primary uppercase tracking-[0.3em] mb-4 block">Upload Photo</label>
+
+                                    {!referenceImage ? (
+                                        <label className="w-full relative flex flex-col items-center justify-center p-12 bg-bg-main border-2 border-dashed border-border/80 hover:border-primary/50 hover:bg-primary/5 rounded-[2rem] cursor-pointer transition-all group overflow-hidden">
+                                            <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                                            <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                                <UploadCloud className="text-primary" size={28} />
+                                            </div>
+                                            <span className="font-serif font-bold text-lg text-text-dark mb-1">Click to Upload</span>
+                                            <span className="text-xs text-text-dark/40 uppercase tracking-wider font-bold">PNG, JPG up to 2MB</span>
+                                        </label>
+                                    ) : (
+                                        <div className="relative rounded-[2rem] overflow-hidden group shadow-lg">
+                                            <img src={referenceImage} alt="Reference" className="w-full h-64 md:h-80 object-cover" />
+                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+                                                <div className="flex gap-4">
+                                                    <label className="px-6 py-3 bg-white text-text-dark rounded-xl font-bold text-sm cursor-pointer hover:bg-bg-main transition-colors shadow-xl">
+                                                        <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                                                        Change
+                                                    </label>
+                                                    <button onClick={() => setReferenceImage(null)} className="px-6 py-3 bg-red-500 text-white rounded-xl font-bold text-sm hover:bg-red-600 transition-colors shadow-xl">
+                                                        Remove
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </motion.section>
+                        )}
+
+                        {currentStep === 3 && (
+                            <motion.section
+                                key="step3"
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
@@ -205,9 +281,9 @@ export default function BouquetBuilder() {
                             </motion.section>
                         )}
 
-                        {currentStep === 3 && (
+                        {currentStep === 4 && (
                             <motion.section
-                                key="step3"
+                                key="step4"
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
@@ -359,9 +435,9 @@ export default function BouquetBuilder() {
                             </motion.section>
                         )}
 
-                        {currentStep === 4 && (
+                        {currentStep === 5 && (
                             <motion.section
-                                key="step4"
+                                key="step5"
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
@@ -409,7 +485,7 @@ export default function BouquetBuilder() {
                         Go Back
                     </button>
 
-                    {currentStep < 4 ? (
+                    {currentStep < steps.length ? (
                         <button
                             onClick={() => { nextStep(); window.scrollTo({ top: 100, behavior: 'smooth' }); }}
                             className="w-full sm:w-auto px-6 lg:px-12 py-3.5 md:py-4 bg-primary text-white rounded-2xl font-bold hover:bg-primary-dark transition-all shadow-xl shadow-primary/20 hover:-translate-y-1 flex items-center justify-center gap-3 text-sm md:text-base"
@@ -458,6 +534,12 @@ export default function BouquetBuilder() {
                                             )}
                                         </div>
                                     </div>
+
+                                    {referenceImage && (
+                                        <div className="mt-4 border-2 border-border/50 rounded-2xl overflow-hidden aspect-video bg-bg-main">
+                                            <img src={referenceImage} alt="Reference Preview" className="w-full h-full object-cover" />
+                                        </div>
+                                    )}
 
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-2">
                                         <div className="p-4 bg-white/40 rounded-2xl border border-white flex flex-col justify-center">

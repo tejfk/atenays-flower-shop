@@ -7,15 +7,15 @@ export default {
     theme: {
         extend: {
             colors: {
-                primary: '#E07B7B',
-                'primary-dark': '#C96868',
-                accent: '#FF8E8E',
-                'bg-main': '#F5E6D3',
+                primary: '#0077C0', // Bright cerulean blue
+                'primary-dark': '#00509E', // Deep royal blue
+                accent: '#4AC6F6', // Bright cyan/sky blue
+                'bg-main': '#F0F8FF', // Alice blue (very soft icy background)
                 card: '#FFFFFF',
-                'text-dark': '#333333',
-                border: '#F0D5D5',
-                'grad-top': '#FF8A8A',
-                'grad-bot': '#FFFCF7',
+                'text-dark': '#2B3C5A', // Dark navy/slate for text
+                border: '#BBDEFB', // Soft blue border
+                'grad-top': '#0077C0',
+                'grad-bot': '#E3F2FD',
             },
             borderRadius: {
                 '2xl': '1rem',

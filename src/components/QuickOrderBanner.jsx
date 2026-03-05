@@ -28,7 +28,7 @@ export default function QuickOrderBanner() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.6 }}
-                    className="bg-white rounded-[3rem] shadow-xl border border-primary/10 p-8 md:p-12 text-center relative overflow-hidden"
+                    className="bg-white rounded-2xl shadow-xl border border-primary/10 p-8 md:p-12 text-center relative overflow-hidden"
                 >
                     {/* Decorative background */}
                     <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />

@@ -8,7 +8,7 @@ export default function Customize() {
     }, [])
 
     return (
-        <section className="py-24 pt-32 bg-white/50 min-h-screen relative">
+        <section className="py-24 pt-32 bg-transparent min-h-screen relative">
             <div className="container mx-auto px-6 max-w-6xl">
                 <div className="text-center max-w-2xl mx-auto mb-16">
                     <span className="text-primary uppercase tracking-widest text-sm font-semibold mb-2 block">Personalize Your Bloom</span>

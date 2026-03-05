@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, Check, MessageCircle, Download } from 'lucide-react'
+import { Camera, X, CheckCircle, MessageCircle } from 'lucide-react'
 import html2canvas from 'html2canvas'
+import logoImg from '../assets/img/logo.svg'
 import { useCart } from '../context/CartContext'
 
 export default function BatchSummaryModal({ isOpen, onClose }) {
@@ -90,7 +90,7 @@ export default function BatchSummaryModal({ isOpen, onClose }) {
                     initial={{ opacity: 0, scale: 0.95, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                    className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[95vh]"
+                    className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]"
                 >
                     <div className="p-4 md:p-6 overflow-y-auto hide-scrollbar flex-1 relative">
                         <button onClick={onClose} className="absolute top-4 right-4 z-[210] p-2 hover:bg-bg-main rounded-full text-text-dark/50 hover:text-text-dark transition-colors">
@@ -100,8 +100,8 @@ export default function BatchSummaryModal({ isOpen, onClose }) {
                         {/* Capture Area - Digital Receipt Format */}
                         <div ref={summaryRef} className="bg-white p-4 md:p-6">
                             <div className="text-center mb-6 pb-6 border-b border-border/40 border-dashed">
-                                <div className="flex items-center justify-center gap-2 mb-2">
-                                    <h1 className="font-serif text-2xl font-bold text-primary-dark">Ate Nays Flower Shop</h1>
+                                <div className="flex items-center justify-center mb-4">
+                                    <img src={logoImg} alt="Ate Nays Logo" className="h-16 w-auto object-contain drop-shadow-sm" />
                                 </div>
                                 <h2 className="text-xl font-serif text-text-dark leading-tight">Digital Receipt</h2>
                                 <p className="text-text-dark/40 text-[10px] uppercase tracking-widest font-bold mt-2">Boutique Batch Order</p>

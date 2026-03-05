@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Check, MessageCircle, Download, Image as ImageIcon } from 'lucide-react'
 import html2canvas from 'html2canvas'
+import logoImg from '../assets/img/logo.svg'
 
 export default function OrderSummaryModal({ isOpen, onClose, orderData, type = 'regular' }) {
     const [isDownloading, setIsDownloading] = useState(false)
@@ -51,7 +52,7 @@ export default function OrderSummaryModal({ isOpen, onClose, orderData, type = '
 
     const generateMessageContent = () => {
         let message = `Hello Ate Nays! I would like to order this bouquet.\n`
-        message += `Type: ${isCustom ? 'Custom Build' : orderData.productName || 'Bespoke Item'}\n`
+        message += `Type: ${isCustom ? (orderData.referenceImage ? 'Custom Build (With Reference Photo)' : 'Custom Build (Manual)') : orderData.productName || 'Bespoke Item'}\n`
         message += `Total Amount: ₱${total.toLocaleString('en-PH')}\n`
         message += `\nI have saved and attached the image of my summary here.`
 
@@ -87,7 +88,7 @@ export default function OrderSummaryModal({ isOpen, onClose, orderData, type = '
                     initial={{ opacity: 0, scale: 0.95, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                    className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                    className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
                 >
                     <div className="p-5 md:p-8 overflow-y-auto hide-scrollbar">
                         <button onClick={onClose} className="absolute top-5 right-5 z-[210] p-2 hover:bg-bg-main rounded-full text-text-dark/50 hover:text-text-dark transition-colors">
@@ -97,8 +98,12 @@ export default function OrderSummaryModal({ isOpen, onClose, orderData, type = '
                         {/* Capture Area */}
                         <div ref={summaryRef} className="bg-white p-2">
                             <div className="text-center mb-6">
-                                <div className="flex items-center justify-center gap-2 mb-2">
-                                    <h1 className="font-serif text-xl font-bold text-primary-dark">Ate Nays Flower Shop</h1>
+                                <div className="flex items-center justify-center mb-4">
+                                    <img
+                                        src={logoImg}
+                                        alt="Ate Nays Logo"
+                                        className="w-12 h-12 object-contain rounded-full"
+                                    />
                                 </div>
                                 <h2 className="text-lg font-serif text-text-dark leading-tight">Order Summary</h2>
                                 <p className="text-text-dark/40 text-[10px] uppercase tracking-widest font-bold mt-1">Direct Boutique Inquiry</p>
@@ -109,6 +114,17 @@ export default function OrderSummaryModal({ isOpen, onClose, orderData, type = '
                                 {isCustom ? (
                                     <>
                                         <DetailRow label="Budget Focus" value={orderData.budget} />
+
+                                        {/* Reference Image Render Block */}
+                                        {orderData.referenceImage && (
+                                            <div className="flex flex-col border-b border-border/50 pb-3 gap-2 mt-2">
+                                                <span className="text-sm font-medium text-text-dark/60">Reference Image</span>
+                                                <div className="w-full h-auto max-h-[400px] rounded-xl overflow-hidden border border-border shadow-sm flex items-center justify-center bg-bg-main relative p-2">
+                                                    <img src={orderData.referenceImage} alt="Reference Request" className="max-w-full max-h-full object-contain rounded-lg shadow-sm" style={{ maxHeight: '380px' }} />
+                                                </div>
+                                            </div>
+                                        )}
+
                                         {isBudgetBasis ? (
                                             <>
                                                 <DetailRow label="Selected Flowers" value={orderData.flowers} />
@@ -135,9 +151,14 @@ export default function OrderSummaryModal({ isOpen, onClose, orderData, type = '
                                 )}
 
                                 <div className="pt-4 mt-6 border-t border-dashed border-border flex justify-between items-center">
-                                    <span className="font-bold text-text-dark uppercase tracking-widest text-[10px]">Total Amount</span>
+                                    <span className="font-bold text-text-dark uppercase tracking-widest text-[10px]">Estimated Price</span>
                                     <span className="text-xl md:text-2xl font-bold text-primary-dark">₱{total.toLocaleString('en-PH')}</span>
                                 </div>
+                                {isCustom && (
+                                    <p className="text-[10px] text-text-dark/40 font-bold uppercase tracking-[0.1em] text-center mt-2">
+                                        *Includes Materials & Standard Labor Fee
+                                    </p>
+                                )}
                             </div>
                         </div>
 

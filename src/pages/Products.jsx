@@ -110,7 +110,7 @@ export default function Products() {
 
     return (
         <>
-            <section className="py-20 md:py-24 pt-28 md:pt-32 relative bg-white/80 min-h-screen">
+            <section className="py-20 md:py-24 pt-28 md:pt-32 relative bg-transparent min-h-screen">
                 <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
                     <div className="text-center max-w-2xl mx-auto mb-12 md:mb-16">
                         <span className="text-primary uppercase tracking-widest text-xs font-semibold mb-2 block">Fresh Arrangements</span>
