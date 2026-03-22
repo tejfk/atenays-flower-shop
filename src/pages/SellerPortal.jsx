@@ -14,6 +14,77 @@ import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
+const PendingUploadsList = ({ items, onNameChange, onRemove, onUpload, isUploading, typeLabel, uploadProgress }) => {
+    if (items.length === 0) return null;
+    return (
+        <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-6 p-4 sm:p-6 bg-white rounded-3xl border border-primary/20 shadow-sm"
+        >
+            <div className="flex justify-between items-center mb-6">
+                <h4 className="text-xs sm:text-sm font-bold text-text-dark/80 uppercase tracking-widest flex items-center gap-2">
+                    <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+                    Pending {typeLabel} ({items.length})
+                </h4>
+                {isUploading && uploadProgress && (
+                    <span className="text-[10px] sm:text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full animate-bounce">
+                        {uploadProgress}
+                    </span>
+                )}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-8">
+                {items.map((item, idx) => (
+                    <div key={idx} className="flex gap-4 p-3 bg-bg-main/40 rounded-2xl border border-border/40 group hover:border-primary/20 transition-all">
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border border-border/60 shrink-0 shadow-inner bg-white">
+                            <img src={item.preview} className="w-full h-full object-contain" alt="Preview" />
+                        </div>
+                        <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
+                            <input
+                                type="text"
+                                value={item.name}
+                                onChange={(e) => onNameChange(idx, e.target.value)}
+                                className="w-full bg-transparent border-b border-border/60 focus:border-primary outline-none text-sm font-bold placeholder:text-text-dark/20 py-1"
+                                placeholder="Enter name..."
+                            />
+                            <span className="text-[9px] sm:text-[10px] text-text-dark/40 truncate italic">{item.file.name}</span>
+                        </div>
+                        <button onClick={() => onRemove(idx)} className="self-center p-2 text-text-dark/30 hover:text-red-500 hover:bg-red-50 transition-all rounded-full" disabled={isUploading}>
+                            <X size={16} />
+                        </button>
+                    </div>
+                ))}
+            </div>
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-border/40">
+                <button
+                    onClick={() => onRemove(-1)}
+                    disabled={isUploading}
+                    className="w-full sm:w-auto px-6 py-2.5 text-sm font-bold text-text-dark/50 hover:text-text-dark transition-all"
+                >
+                    Clear All
+                </button>
+                <button
+                    onClick={onUpload}
+                    disabled={isUploading || items.some(i => !i.name.trim())}
+                    className="w-full sm:w-auto px-8 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-md shadow-primary/10"
+                >
+                    {isUploading ? (
+                        <>
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            {uploadProgress || "Uploading..."}
+                        </>
+                    ) : (
+                        <>
+                            <Plus size={18} />
+                            Add to Catalog
+                        </>
+                    )}
+                </button>
+            </div>
+        </motion.div>
+    );
+};
+
 export default function SellerPortal() {
     const { logout } = useAuth()
     const navigate = useNavigate()
@@ -45,11 +116,57 @@ export default function SellerPortal() {
         fillers: []
     })
     const [isSavingCustom, setIsSavingCustom] = useState(false)
-    const [newFlower, setNewFlower] = useState({ name: '', image: null, preview: null })
-    const [newWrapper, setNewWrapper] = useState({ name: '', hex: '#000000', image: null, preview: null })
-    const [newRibbon, setNewRibbon] = useState({ name: '', hex: '#000000', image: null, preview: null })
+    const [pendingUploads, setPendingUploads] = useState({
+        flowers: [],
+        wrappers: [],
+        ribbons: [],
+        fillers: []
+    })
+    const [uploadProgress, setUploadProgress] = useState("")
     const [zoomedImage, setZoomedImage] = useState(null)
-    const [newFiller, setNewFiller] = useState({ name: '', image: null, preview: null })
+
+    const handleBulkUpload = async (category) => {
+        const items = pendingUploads[category];
+        if (!items || items.length === 0) return;
+
+        setIsSavingCustom(true);
+        let successCount = 0;
+        try {
+            const currentItems = [...(customization[category] || [])];
+            for (let i = 0; i < items.length; i++) {
+                setUploadProgress(`${i + 1} of ${items.length}`);
+                const item = items[i];
+
+                if (item.file.size > 2 * 1024 * 1024) {
+                    toast.error(`${item.file.name} is too large (>2MB)`);
+                    continue;
+                }
+
+                try {
+                    const url = await uploadCustomImage(item.file, category);
+                    currentItems.push({ name: item.name.trim(), imageUrl: url });
+                    successCount++;
+                } catch (err) {
+                    console.error(`Failed to upload ${item.file.name}:`, err);
+                    toast.error(`Failed to upload ${item.file.name}`);
+                }
+            }
+
+            if (successCount > 0) {
+                const newState = { ...customization, [category]: currentItems };
+                setCustomization(newState);
+                await setDoc(doc(db, 'settings', 'customization'), newState);
+                toast.success(`Successfully added ${successCount} ${category}!`);
+            }
+            setPendingUploads(prev => ({ ...prev, [category]: [] }));
+        } catch (error) {
+            console.error("Bulk upload error:", error);
+            toast.error("An error occurred during bulk upload");
+        } finally {
+            setIsSavingCustom(false);
+            setUploadProgress("");
+        }
+    }
 
     // Catalog State
     const [products, setProducts] = useState([])
@@ -61,7 +178,7 @@ export default function SellerPortal() {
     const [imagePreview, setImagePreview] = useState(null)
     const [productFormData, setProductFormData] = useState({
         name: '', minPrice: '', maxPrice: '', description: '',
-        emoji: '🌸', imageUrl: '', category: 'Romance', badge: '',
+        imageUrl: '', category: 'Romance',
         occasion: "Valentine's Day", isAvailable: true
     })
 
@@ -87,7 +204,7 @@ export default function SellerPortal() {
     }, [])
 
     const fetchCustomization = async () => {
-        const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 15000))
+        const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 30000))
         try {
             const docRef = doc(db, 'settings', 'customization')
             const docSnap = await Promise.race([getDoc(docRef), timeout])
@@ -125,7 +242,7 @@ export default function SellerPortal() {
 
     const fetchProducts = async () => {
         setLoadingProducts(true)
-        const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 15000))
+        const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 30000))
         try {
             const querySnapshot = await Promise.race([getDocs(collection(db, 'products')), timeout])
             const fetched = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
@@ -138,7 +255,7 @@ export default function SellerPortal() {
     }
 
     const fetchProfile = async () => {
-        const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 15000))
+        const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 30000))
         try {
             const docRef = doc(db, 'settings', 'sellerProfile')
             const docSnap = await Promise.race([getDoc(docRef), timeout])
@@ -231,7 +348,7 @@ export default function SellerPortal() {
             setImagePreview(null)
             setProductFormData({
                 name: '', minPrice: '', maxPrice: '', description: '',
-                emoji: '🌸', imageUrl: '', category: 'Romance', badge: '',
+                imageUrl: '', category: 'Romance',
                 occasion: "Valentine's Day", isAvailable: true
             })
             fetchProducts()
@@ -274,10 +391,8 @@ export default function SellerPortal() {
             minPrice: product.minPrice,
             maxPrice: product.maxPrice,
             description: product.description,
-            emoji: product.emoji || '🌸',
             imageUrl: product.imageUrl || '',
             category: product.category || 'Romance',
-            badge: product.badge || '',
             occasion: product.occasion || "Valentine's Day",
             isAvailable: product.isAvailable !== undefined ? product.isAvailable : true
         })
@@ -395,7 +510,7 @@ export default function SellerPortal() {
                                         setEditingProduct(null);
                                         setProductFormData({
                                             name: '', minPrice: '', maxPrice: '', description: '',
-                                            emoji: '🌸', imageUrl: '', category: 'Romance', badge: ''
+                                            imageUrl: '', category: 'Romance'
                                         });
                                         setIsProductModalOpen(true);
                                     }}
@@ -529,7 +644,7 @@ export default function SellerPortal() {
                                     <h3 className="text-xl font-serif font-bold mb-6 flex items-center gap-2">
                                         <Sparkles className="text-primary" size={24} /> Available Flowers
                                     </h3>
-                                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 mb-6 max-h-[300px] overflow-y-auto hide-scrollbar pr-2">
+                                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 mb-6 max-h-[400px] overflow-y-auto hide-scrollbar pr-2">
                                         {customization.flowers.map((flower, idx) => (
                                             <div key={idx} title={flower.name} className="relative group aspect-square p-2 bg-white border border-primary/20 hover:border-primary/40 rounded-[1.5rem] overflow-hidden flex items-center justify-center transition-all hover:shadow-sm">
                                                 {flower.imageUrl ? (
@@ -566,88 +681,52 @@ export default function SellerPortal() {
                                             </div>
                                         ))}
                                     </div>
-                                    {newFlower.preview ? (
-                                        <div className="bg-bg-main p-6 rounded-2xl border border-border border-dashed flex flex-col md:flex-row gap-6 items-start mt-6">
-                                            <div className="w-32 h-32 rounded-xl border border-border/60 overflow-hidden shrink-0 relative group shadow-inner">
-                                                <img src={newFlower.preview} alt="Upload preview" className="w-full h-full object-cover" />
-                                                <button onClick={() => {
-                                                    setNewFlower({ name: '', image: null, preview: null })
-                                                    if (flowerInputRef.current) flowerInputRef.current.value = ''
-                                                }} className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center text-white">
-                                                    <Trash2 size={24} />
-                                                </button>
-                                            </div>
-                                            <div className="flex-1 space-y-4 w-full">
-                                                <div>
-                                                    <label className="text-xs font-bold text-text-dark/50 uppercase tracking-wider ml-1">Flower Name</label>
-                                                    <input
-                                                        type="text"
-                                                        value={newFlower.name}
-                                                        onChange={(e) => setNewFlower({ ...newFlower, name: e.target.value })}
-                                                        placeholder="e.g. Premium Ecuadorian Rose"
-                                                        autoFocus
-                                                        className="w-full mt-1 px-4 py-3 bg-white border border-border/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/40 font-medium"
-                                                    />
-                                                </div>
-                                                <div className="flex gap-3">
-                                                    <button
-                                                        onClick={async () => {
-                                                            if (newFlower.name.trim()) {
-                                                                setIsSavingCustom(true)
-                                                                try {
-                                                                    let url = ''
-                                                                    if (newFlower.image) {
-                                                                        url = await uploadCustomImage(newFlower.image, 'flowers')
-                                                                    }
-                                                                    const newState = { ...customization, flowers: [...(customization.flowers || []), { name: newFlower.name.trim(), imageUrl: url }] }
-                                                                    setCustomization(newState)
-                                                                    await setDoc(doc(db, 'settings', 'customization'), newState)
-                                                                    setNewFlower({ name: '', image: null, preview: null })
-                                                                    if (flowerInputRef.current) flowerInputRef.current.value = ''
-                                                                    toast.success("Flower added successfully!")
-                                                                } catch (error) {
-                                                                    console.error("Flower upload error:", error)
-                                                                    toast.error("Failed to add flower: " + (error.message || "Unknown error"))
-                                                                } finally {
-                                                                    setIsSavingCustom(false)
-                                                                }
-                                                            }
-                                                        }}
-                                                        disabled={isSavingCustom || !newFlower.name.trim()}
-                                                        className="px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition-all disabled:opacity-50 shadow-sm"
-                                                    >
-                                                        {isSavingCustom ? 'Uploading...' : 'Add to Catalog'}
-                                                    </button>
-                                                    <button
-                                                        onClick={() => {
-                                                            setNewFlower({ name: '', image: null, preview: null })
-                                                            if (flowerInputRef.current) flowerInputRef.current.value = ''
-                                                        }}
-                                                        disabled={isSavingCustom}
-                                                        className="px-6 py-3 bg-transparent text-text-dark/50 rounded-xl font-bold hover:text-text-dark hover:bg-black/5 transition-all"
-                                                    >
-                                                        Cancel
-                                                    </button>
-                                                </div>
-                                            </div>
+                                    <div
+                                        onClick={() => flowerInputRef.current?.click()}
+                                        className="w-full mt-6 py-12 rounded-2xl border-2 border-dashed border-border/60 bg-bg-main/50 hover:bg-bg-main cursor-pointer transition-all flex flex-col items-center justify-center text-text-dark/60 gap-3 group relative"
+                                    >
+                                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
+                                            <UploadCloud size={24} />
                                         </div>
-                                    ) : (
-                                        <div
-                                            onClick={() => flowerInputRef.current?.click()}
-                                            className="w-full mt-6 py-12 rounded-2xl border-2 border-dashed border-border/60 bg-bg-main/50 hover:bg-bg-main cursor-pointer transition-all flex flex-col items-center justify-center text-text-dark/60 gap-3 group"
-                                        >
-                                            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
-                                                <UploadCloud size={24} />
-                                            </div>
-                                            <span className="font-medium">Click or drop image to upload a new Flower</span>
+                                        <div className="text-center">
+                                            <p className="font-bold text-text-dark/80">Click to upload Flowers</p>
+                                            <p className="text-xs opacity-60 mt-1">Add multiple images and name them before saving</p>
                                         </div>
-                                    )}
-                                    <input type="file" ref={flowerInputRef} className="hidden" accept="image/*" onChange={(e) => {
-                                        const file = e.target.files[0];
-                                        if (file) {
-                                            if (file.size > 2 * 1024 * 1024) { toast.error("Image must be smaller than 2MB"); return; }
-                                            setNewFlower({ ...newFlower, image: file, preview: URL.createObjectURL(file) })
-                                        }
+                                    </div>
+
+                                    <PendingUploadsList
+                                        items={pendingUploads.flowers}
+                                        typeLabel="Flowers"
+                                        isUploading={isSavingCustom}
+                                        uploadProgress={uploadProgress}
+                                        onRemove={(idx) => {
+                                            if (idx === -1) setPendingUploads({ ...pendingUploads, flowers: [] });
+                                            else {
+                                                const newPending = [...pendingUploads.flowers];
+                                                newPending.splice(idx, 1);
+                                                setPendingUploads({ ...pendingUploads, flowers: newPending });
+                                            }
+                                        }}
+                                        onNameChange={(idx, name) => {
+                                            const newPending = [...pendingUploads.flowers];
+                                            newPending[idx].name = name;
+                                            setPendingUploads({ ...pendingUploads, flowers: newPending });
+                                        }}
+                                        onUpload={() => handleBulkUpload('flowers')}
+                                    />
+
+                                    <input type="file" ref={flowerInputRef} className="hidden" accept="image/*" multiple onChange={(e) => {
+                                        const files = Array.from(e.target.files);
+                                        if (files.length === 0) return;
+
+                                        const newPending = files.map(file => ({
+                                            file,
+                                            preview: URL.createObjectURL(file),
+                                            name: file.name.split('.')[0].replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+                                        }));
+
+                                        setPendingUploads({ ...pendingUploads, flowers: [...pendingUploads.flowers, ...newPending] });
+                                        if (flowerInputRef.current) flowerInputRef.current.value = '';
                                     }} />
                                 </section>
 
@@ -656,7 +735,7 @@ export default function SellerPortal() {
                                     <h3 className="text-xl font-serif font-bold mb-6 flex items-center gap-2">
                                         <Palette className="text-primary" size={24} /> Available Wrappers
                                     </h3>
-                                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 mb-6 max-h-[300px] overflow-y-auto hide-scrollbar pr-2">
+                                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 mb-6 max-h-[400px] overflow-y-auto hide-scrollbar pr-2">
                                         {customization.wrappers.map((wrapper, idx) => (
                                             <div key={idx} title={wrapper.name} className="relative group aspect-square p-2 bg-white border border-primary/20 hover:border-primary/40 rounded-[1.5rem] overflow-hidden flex items-center justify-center transition-all hover:shadow-sm">
                                                 {wrapper.imageUrl ? (
@@ -693,75 +772,52 @@ export default function SellerPortal() {
                                             </div>
                                         ))}
                                     </div>
-                                    {newWrapper.preview ? (
-                                        <div className="bg-bg-main p-6 rounded-2xl border border-border border-dashed flex flex-col md:flex-row gap-6 items-start mt-6">
-                                            <div className="w-32 h-32 rounded-xl border border-border/60 overflow-hidden shrink-0 relative group shadow-inner">
-                                                {newWrapper.preview && <img src={newWrapper.preview} alt="Upload preview" className="w-full h-full object-cover" />}
-                                                <button onClick={() => {
-                                                    setNewWrapper({ name: '', hex: '#000000', image: null, preview: null })
-                                                    if (wrapperInputRef.current) wrapperInputRef.current.value = ''
-                                                }} className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center text-white">
-                                                    <Trash2 size={24} />
-                                                </button>
-                                            </div>
-                                            <div className="flex-1 space-y-4 w-full">
-                                                <div className="flex gap-4 flex-col sm:flex-row">
-                                                    <div className="flex-1">
-                                                        <label className="text-xs font-bold text-text-dark/50 uppercase tracking-wider ml-1">Wrapper Name</label>
-                                                        <input
-                                                            type="text"
-                                                            value={newWrapper.name}
-                                                            onChange={(e) => setNewWrapper({ ...newWrapper, name: e.target.value })}
-                                                            placeholder="e.g. Matte Black"
-                                                            autoFocus
-                                                            className="w-full mt-1 px-4 py-3 bg-white border border-border/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/40 font-medium"
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <div className="flex gap-3">
-                                                    <button
-                                                        onClick={async () => {
-                                                            if (newWrapper.name.trim()) {
-                                                                setIsSavingCustom(true)
-                                                                try {
-                                                                    let url = ''
-                                                                    if (newWrapper.image) url = await uploadCustomImage(newWrapper.image, 'wrappers')
-                                                                    const itemData = { name: newWrapper.name.trim(), hex: newWrapper.hex, imageUrl: url }
-                                                                    const newState = { ...customization, wrappers: [...(customization.wrappers || []), itemData] }
-                                                                    setCustomization(newState)
-                                                                    await setDoc(doc(db, 'settings', 'customization'), newState)
-                                                                    setNewWrapper({ name: '', hex: '#000000', image: null, preview: null })
-                                                                    if (wrapperInputRef.current) wrapperInputRef.current.value = ''
-                                                                    toast.success("Wrapper added successfully!")
-                                                                } catch (error) {
-                                                                    console.error("Wrapper upload error:", error)
-                                                                    toast.error("Failed to add wrapper: " + (error.message || "Unknown error"))
-                                                                } finally {
-                                                                    setIsSavingCustom(false)
-                                                                }
-                                                            }
-                                                        }}
-                                                        disabled={isSavingCustom || !newWrapper.name.trim()}
-                                                        className="px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition-all disabled:opacity-50 shadow-sm"
-                                                    >
-                                                        {isSavingCustom ? 'Uploading...' : 'Add to Catalog'}
-                                                    </button>
-                                                    <button onClick={() => { setNewWrapper({ name: '', hex: '#000000', image: null, preview: null }); if (wrapperInputRef.current) wrapperInputRef.current.value = '' }} disabled={isSavingCustom} className="px-6 py-3 bg-transparent text-text-dark/50 rounded-xl font-bold hover:text-text-dark hover:bg-black/5 transition-all">Cancel</button>
-                                                </div>
-                                            </div>
+                                    <div
+                                        onClick={() => wrapperInputRef.current?.click()}
+                                        className="w-full mt-6 py-12 rounded-2xl border-2 border-dashed border-border/60 bg-bg-main/50 hover:bg-bg-main cursor-pointer transition-all flex flex-col items-center justify-center text-text-dark/60 gap-3 group relative"
+                                    >
+                                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
+                                            <UploadCloud size={24} />
                                         </div>
-                                    ) : (
-                                        <div onClick={() => wrapperInputRef.current?.click()} className="w-full mt-6 py-12 rounded-2xl border-2 border-dashed border-border/60 bg-bg-main/50 hover:bg-bg-main cursor-pointer transition-all flex flex-col items-center justify-center text-text-dark/60 gap-3 group">
-                                            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all shadow-sm"><UploadCloud size={24} /></div>
-                                            <span className="font-medium">Click or drop image to upload a new Wrapper</span>
+                                        <div className="text-center">
+                                            <p className="font-bold text-text-dark/80">Click to upload Wrappers</p>
+                                            <p className="text-xs opacity-60 mt-1">Add multiple images and name them before saving</p>
                                         </div>
-                                    )}
-                                    <input type="file" ref={wrapperInputRef} className="hidden" accept="image/*" onChange={(e) => {
-                                        const file = e.target.files[0];
-                                        if (file) {
-                                            if (file.size > 2 * 1024 * 1024) { toast.error("Image must be smaller than 2MB"); return; }
-                                            setNewWrapper({ ...newWrapper, image: file, preview: URL.createObjectURL(file) })
-                                        }
+                                    </div>
+
+                                    <PendingUploadsList
+                                        items={pendingUploads.wrappers}
+                                        typeLabel="Wrappers"
+                                        isUploading={isSavingCustom}
+                                        uploadProgress={uploadProgress}
+                                        onRemove={(idx) => {
+                                            if (idx === -1) setPendingUploads({ ...pendingUploads, wrappers: [] });
+                                            else {
+                                                const newPending = [...pendingUploads.wrappers];
+                                                newPending.splice(idx, 1);
+                                                setPendingUploads({ ...pendingUploads, wrappers: newPending });
+                                            }
+                                        }}
+                                        onNameChange={(idx, name) => {
+                                            const newPending = [...pendingUploads.wrappers];
+                                            newPending[idx].name = name;
+                                            setPendingUploads({ ...pendingUploads, wrappers: newPending });
+                                        }}
+                                        onUpload={() => handleBulkUpload('wrappers')}
+                                    />
+
+                                    <input type="file" ref={wrapperInputRef} className="hidden" accept="image/*" multiple onChange={(e) => {
+                                        const files = Array.from(e.target.files);
+                                        if (files.length === 0) return;
+
+                                        const newPending = files.map(file => ({
+                                            file,
+                                            preview: URL.createObjectURL(file),
+                                            name: file.name.split('.')[0].replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+                                        }));
+
+                                        setPendingUploads({ ...pendingUploads, wrappers: [...pendingUploads.wrappers, ...newPending] });
+                                        if (wrapperInputRef.current) wrapperInputRef.current.value = '';
                                     }} />
                                 </section>
 
@@ -770,7 +826,7 @@ export default function SellerPortal() {
                                     <h3 className="text-xl font-serif font-bold mb-6 flex items-center gap-2">
                                         <Info className="text-primary" size={24} /> Available Ribbons
                                     </h3>
-                                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 mb-6 max-h-[300px] overflow-y-auto hide-scrollbar pr-2">
+                                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 mb-6 max-h-[400px] overflow-y-auto hide-scrollbar pr-2">
                                         {customization.ribbons?.map((ribbon, idx) => (
                                             <div key={idx} title={ribbon.name} className="relative group aspect-square p-2 bg-white border border-primary/20 hover:border-primary/40 rounded-[1.5rem] overflow-hidden flex items-center justify-center transition-all hover:shadow-sm">
                                                 {ribbon.imageUrl ? (
@@ -807,75 +863,52 @@ export default function SellerPortal() {
                                             </div>
                                         ))}
                                     </div>
-                                    {newRibbon.preview ? (
-                                        <div className="bg-bg-main p-6 rounded-2xl border border-border border-dashed flex flex-col md:flex-row gap-6 items-start mt-6">
-                                            <div className="w-32 h-32 rounded-xl border border-border/60 overflow-hidden shrink-0 relative group shadow-inner">
-                                                {newRibbon.preview && <img src={newRibbon.preview} alt="Upload preview" className="w-full h-full object-cover" />}
-                                                <button onClick={() => {
-                                                    setNewRibbon({ name: '', hex: '#000000', image: null, preview: null })
-                                                    if (ribbonInputRef.current) ribbonInputRef.current.value = ''
-                                                }} className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center text-white">
-                                                    <Trash2 size={24} />
-                                                </button>
-                                            </div>
-                                            <div className="flex-1 space-y-4 w-full">
-                                                <div className="flex gap-4 flex-col sm:flex-row">
-                                                    <div className="flex-1">
-                                                        <label className="text-xs font-bold text-text-dark/50 uppercase tracking-wider ml-1">Ribbon Name</label>
-                                                        <input
-                                                            type="text"
-                                                            value={newRibbon.name}
-                                                            onChange={(e) => setNewRibbon({ ...newRibbon, name: e.target.value })}
-                                                            placeholder="e.g. Silk Champagne"
-                                                            autoFocus
-                                                            className="w-full mt-1 px-4 py-3 bg-white border border-border/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/40 font-medium"
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <div className="flex gap-3">
-                                                    <button
-                                                        onClick={async () => {
-                                                            if (newRibbon.name.trim()) {
-                                                                setIsSavingCustom(true)
-                                                                try {
-                                                                    let url = ''
-                                                                    if (newRibbon.image) url = await uploadCustomImage(newRibbon.image, 'ribbons')
-                                                                    const itemData = { name: newRibbon.name.trim(), hex: newRibbon.hex, imageUrl: url }
-                                                                    const newState = { ...customization, ribbons: [...(customization.ribbons || []), itemData] }
-                                                                    setCustomization(newState)
-                                                                    await setDoc(doc(db, 'settings', 'customization'), newState)
-                                                                    setNewRibbon({ name: '', hex: '#000000', image: null, preview: null })
-                                                                    if (ribbonInputRef.current) ribbonInputRef.current.value = ''
-                                                                    toast.success("Ribbon added successfully!")
-                                                                } catch (error) {
-                                                                    console.error("Ribbon upload error:", error)
-                                                                    toast.error("Failed to add ribbon: " + (error.message || "Unknown error"))
-                                                                } finally {
-                                                                    setIsSavingCustom(false)
-                                                                }
-                                                            }
-                                                        }}
-                                                        disabled={isSavingCustom || !newRibbon.name.trim()}
-                                                        className="px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition-all disabled:opacity-50 shadow-sm"
-                                                    >
-                                                        {isSavingCustom ? 'Uploading...' : 'Add to Catalog'}
-                                                    </button>
-                                                    <button onClick={() => { setNewRibbon({ name: '', hex: '#000000', image: null, preview: null }); if (ribbonInputRef.current) ribbonInputRef.current.value = '' }} disabled={isSavingCustom} className="px-6 py-3 bg-transparent text-text-dark/50 rounded-xl font-bold hover:text-text-dark hover:bg-black/5 transition-all">Cancel</button>
-                                                </div>
-                                            </div>
+                                    <div
+                                        onClick={() => ribbonInputRef.current?.click()}
+                                        className="w-full mt-6 py-12 rounded-2xl border-2 border-dashed border-border/60 bg-bg-main/50 hover:bg-bg-main cursor-pointer transition-all flex flex-col items-center justify-center text-text-dark/60 gap-3 group relative"
+                                    >
+                                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
+                                            <UploadCloud size={24} />
                                         </div>
-                                    ) : (
-                                        <div onClick={() => ribbonInputRef.current?.click()} className="w-full mt-6 py-12 rounded-2xl border-2 border-dashed border-border/60 bg-bg-main/50 hover:bg-bg-main cursor-pointer transition-all flex flex-col items-center justify-center text-text-dark/60 gap-3 group">
-                                            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all shadow-sm"><UploadCloud size={24} /></div>
-                                            <span className="font-medium">Click or drop image to upload a new Ribbon</span>
+                                        <div className="text-center">
+                                            <p className="font-bold text-text-dark/80">Click to upload Ribbons</p>
+                                            <p className="text-xs opacity-60 mt-1">Add multiple images and name them before saving</p>
                                         </div>
-                                    )}
-                                    <input type="file" ref={ribbonInputRef} className="hidden" accept="image/*" onChange={(e) => {
-                                        const file = e.target.files[0];
-                                        if (file) {
-                                            if (file.size > 2 * 1024 * 1024) { toast.error("Image must be smaller than 2MB"); return; }
-                                            setNewRibbon({ ...newRibbon, image: file, preview: URL.createObjectURL(file) })
-                                        }
+                                    </div>
+
+                                    <PendingUploadsList
+                                        items={pendingUploads.ribbons}
+                                        typeLabel="Ribbons"
+                                        isUploading={isSavingCustom}
+                                        uploadProgress={uploadProgress}
+                                        onRemove={(idx) => {
+                                            if (idx === -1) setPendingUploads({ ...pendingUploads, ribbons: [] });
+                                            else {
+                                                const newPending = [...pendingUploads.ribbons];
+                                                newPending.splice(idx, 1);
+                                                setPendingUploads({ ...pendingUploads, ribbons: newPending });
+                                            }
+                                        }}
+                                        onNameChange={(idx, name) => {
+                                            const newPending = [...pendingUploads.ribbons];
+                                            newPending[idx].name = name;
+                                            setPendingUploads({ ...pendingUploads, ribbons: newPending });
+                                        }}
+                                        onUpload={() => handleBulkUpload('ribbons')}
+                                    />
+
+                                    <input type="file" ref={ribbonInputRef} className="hidden" accept="image/*" multiple onChange={(e) => {
+                                        const files = Array.from(e.target.files);
+                                        if (files.length === 0) return;
+
+                                        const newPending = files.map(file => ({
+                                            file,
+                                            preview: URL.createObjectURL(file),
+                                            name: file.name.split('.')[0].replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+                                        }));
+
+                                        setPendingUploads({ ...pendingUploads, ribbons: [...(pendingUploads.ribbons || []), ...newPending] });
+                                        if (ribbonInputRef.current) ribbonInputRef.current.value = '';
                                     }} />
                                 </section>
 
@@ -884,7 +917,7 @@ export default function SellerPortal() {
                                     <h3 className="text-xl font-serif font-bold mb-6 flex items-center gap-2">
                                         <Sparkles className="text-secondary" size={24} /> Available Fillers
                                     </h3>
-                                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 mb-6 max-h-[300px] overflow-y-auto hide-scrollbar pr-2">
+                                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 mb-6 max-h-[400px] overflow-y-auto hide-scrollbar pr-2">
                                         {customization.fillers.map((filler, idx) => (
                                             <div key={idx} title={filler.name} className="relative group aspect-square p-2 bg-white border border-primary/20 hover:border-primary/40 rounded-[1.5rem] overflow-hidden flex items-center justify-center transition-all hover:shadow-sm">
                                                 {filler.imageUrl ? (
@@ -921,88 +954,52 @@ export default function SellerPortal() {
                                             </div>
                                         ))}
                                     </div>
-                                    {newFiller.preview ? (
-                                        <div className="bg-bg-main p-6 rounded-2xl border border-border border-dashed flex flex-col md:flex-row gap-6 items-start mt-6">
-                                            <div className="w-32 h-32 rounded-xl border border-border/60 overflow-hidden shrink-0 relative group shadow-inner">
-                                                <img src={newFiller.preview} alt="Upload preview" className="w-full h-full object-cover" />
-                                                <button onClick={() => {
-                                                    setNewFiller({ name: '', image: null, preview: null })
-                                                    if (fillerInputRef.current) fillerInputRef.current.value = ''
-                                                }} className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center text-white">
-                                                    <Trash2 size={24} />
-                                                </button>
-                                            </div>
-                                            <div className="flex-1 space-y-4 w-full">
-                                                <div>
-                                                    <label className="text-xs font-bold text-text-dark/50 uppercase tracking-wider ml-1">Filler Name</label>
-                                                    <input
-                                                        type="text"
-                                                        value={newFiller.name}
-                                                        onChange={(e) => setNewFiller({ ...newFiller, name: e.target.value })}
-                                                        placeholder="e.g. Baby's Breath"
-                                                        autoFocus
-                                                        className="w-full mt-1 px-4 py-3 bg-white border border-border/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/40 font-medium"
-                                                    />
-                                                </div>
-                                                <div className="flex gap-3">
-                                                    <button
-                                                        onClick={async () => {
-                                                            if (newFiller.name.trim()) {
-                                                                setIsSavingCustom(true)
-                                                                try {
-                                                                    let url = ''
-                                                                    if (newFiller.image) {
-                                                                        url = await uploadCustomImage(newFiller.image, 'fillers')
-                                                                    }
-                                                                    const newState = { ...customization, fillers: [...(customization.fillers || []), { name: newFiller.name.trim(), imageUrl: url }] }
-                                                                    setCustomization(newState)
-                                                                    await setDoc(doc(db, 'settings', 'customization'), newState)
-                                                                    setNewFiller({ name: '', image: null, preview: null })
-                                                                    if (fillerInputRef.current) fillerInputRef.current.value = ''
-                                                                    toast.success("Filler added successfully!")
-                                                                } catch (error) {
-                                                                    console.error("Filler upload error:", error)
-                                                                    toast.error("Failed to add filler: " + (error.message || "Unknown error"))
-                                                                } finally {
-                                                                    setIsSavingCustom(false)
-                                                                }
-                                                            }
-                                                        }}
-                                                        disabled={isSavingCustom || !newFiller.name.trim()}
-                                                        className="px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition-all disabled:opacity-50 shadow-sm"
-                                                    >
-                                                        {isSavingCustom ? 'Uploading...' : 'Add to Catalog'}
-                                                    </button>
-                                                    <button
-                                                        onClick={() => {
-                                                            setNewFiller({ name: '', image: null, preview: null })
-                                                            if (fillerInputRef.current) fillerInputRef.current.value = ''
-                                                        }}
-                                                        disabled={isSavingCustom}
-                                                        className="px-6 py-3 bg-transparent text-text-dark/50 rounded-xl font-bold hover:text-text-dark hover:bg-black/5 transition-all"
-                                                    >
-                                                        Cancel
-                                                    </button>
-                                                </div>
-                                            </div>
+                                    <div
+                                        onClick={() => fillerInputRef.current?.click()}
+                                        className="w-full mt-6 py-12 rounded-2xl border-2 border-dashed border-border/60 bg-bg-main/50 hover:bg-bg-main cursor-pointer transition-all flex flex-col items-center justify-center text-text-dark/60 gap-3 group relative"
+                                    >
+                                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
+                                            <UploadCloud size={24} />
                                         </div>
-                                    ) : (
-                                        <div
-                                            onClick={() => fillerInputRef.current?.click()}
-                                            className="w-full mt-6 py-12 rounded-2xl border-2 border-dashed border-border/60 bg-bg-main/50 hover:bg-bg-main cursor-pointer transition-all flex flex-col items-center justify-center text-text-dark/60 gap-3 group"
-                                        >
-                                            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
-                                                <UploadCloud size={24} />
-                                            </div>
-                                            <span className="font-medium">Click or drop image to upload a new Filler</span>
+                                        <div className="text-center">
+                                            <p className="font-bold text-text-dark/80">Click to upload Fillers</p>
+                                            <p className="text-xs opacity-60 mt-1">Add multiple images and name them before saving</p>
                                         </div>
-                                    )}
-                                    <input type="file" ref={fillerInputRef} className="hidden" accept="image/*" onChange={(e) => {
-                                        const file = e.target.files[0];
-                                        if (file) {
-                                            if (file.size > 2 * 1024 * 1024) { toast.error("Image must be smaller than 2MB"); return; }
-                                            setNewFiller({ ...newFiller, image: file, preview: URL.createObjectURL(file) })
-                                        }
+                                    </div>
+
+                                    <PendingUploadsList
+                                        items={pendingUploads.fillers}
+                                        typeLabel="Fillers"
+                                        isUploading={isSavingCustom}
+                                        uploadProgress={uploadProgress}
+                                        onRemove={(idx) => {
+                                            if (idx === -1) setPendingUploads({ ...pendingUploads, fillers: [] });
+                                            else {
+                                                const newPending = [...pendingUploads.fillers];
+                                                newPending.splice(idx, 1);
+                                                setPendingUploads({ ...pendingUploads, fillers: newPending });
+                                            }
+                                        }}
+                                        onNameChange={(idx, name) => {
+                                            const newPending = [...pendingUploads.fillers];
+                                            newPending[idx].name = name;
+                                            setPendingUploads({ ...pendingUploads, fillers: newPending });
+                                        }}
+                                        onUpload={() => handleBulkUpload('fillers')}
+                                    />
+
+                                    <input type="file" ref={fillerInputRef} className="hidden" accept="image/*" multiple onChange={(e) => {
+                                        const files = Array.from(e.target.files);
+                                        if (files.length === 0) return;
+
+                                        const newPending = files.map(file => ({
+                                            file,
+                                            preview: URL.createObjectURL(file),
+                                            name: file.name.split('.')[0].replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+                                        }));
+
+                                        setPendingUploads({ ...pendingUploads, fillers: [...pendingUploads.fillers, ...newPending] });
+                                        if (fillerInputRef.current) fillerInputRef.current.value = '';
                                     }} />
                                 </section>
                             </div>
@@ -1181,18 +1178,6 @@ export default function SellerPortal() {
                                         />
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                        <AdminField
-                                            label="Vibe / Emoji"
-                                            value={productFormData.emoji}
-                                            onChange={(v) => setProductFormData({ ...productFormData, emoji: v })}
-                                        />
-                                        <AdminField
-                                            label="Badge (e.g. Best Seller)"
-                                            value={productFormData.badge}
-                                            onChange={(v) => setProductFormData({ ...productFormData, badge: v })}
-                                        />
-                                    </div>
 
                                     <div className="space-y-4">
                                         <label className="text-xs font-bold text-text-dark/40 uppercase tracking-widest ml-1">Product Image</label>

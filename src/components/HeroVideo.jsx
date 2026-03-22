@@ -29,7 +29,7 @@ export default function HeroVideo() {
         <div className="relative w-full h-[100dvh] min-h-[600px] overflow-hidden bg-[#1a1a1a]">
             {/* Background Video */}
             <video
-                className="absolute top-0 left-0 w-full h-full object-cover z-0 opacity-60"
+                className="absolute top-0 left-0 w-full h-full object-cover z-0 opacity-80"
                 src={heroVideo}
                 autoPlay
                 muted
@@ -39,10 +39,6 @@ export default function HeroVideo() {
                 preload="metadata"
                 style={{ backgroundColor: '#1a1a1a' }}
             />
-
-            {/* Cinematic Overlays */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/20 to-black/80 z-10"></div>
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_0%,_rgba(0,0,0,0.5)_100%)] z-15"></div>
 
             {/* Content overlay */}
             <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-6 pt-20 pb-24">

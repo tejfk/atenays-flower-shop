@@ -11,3 +11,4 @@ export const calculatePrice = ({ flowerPrice = 0, dozens = 1, fillersPrice = 0 }
     // The core formula: (Base Flower Price * Dozens) + Fillers
     return (flowerPrice * dozens) + fillersPrice
 }
+g
