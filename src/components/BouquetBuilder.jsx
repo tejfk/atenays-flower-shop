@@ -96,25 +96,25 @@ export default function BouquetBuilder() {
     return (
         <div className="max-w-[1200px] mx-auto bg-white rounded-[2.5rem] shadow-2xl border border-border/30 overflow-hidden flex flex-col mb-12">
             {/* Header */}
-            <div className="px-8 py-6 border-b border-border/20 flex items-center justify-between bg-white">
-                <h2 className="text-2xl font-bold text-primary font-serif">Customize Your Bouquet</h2>
+            <div className="px-4 lg:px-8 py-4 lg:py-6 border-b border-border/20 flex items-center justify-between bg-white">
+                <h2 className="text-xl lg:text-2xl font-bold text-primary font-serif">Customize Your Bouquet</h2>
                 <button className="p-2 hover:bg-bg-main rounded-full transition-colors text-text-dark/20">
                     <X size={24} />
                 </button>
             </div>
 
             {/* Stepper */}
-            <div className="px-8 py-4 bg-white border-b border-border/10 flex justify-center items-center gap-12">
+            <div className="px-4 lg:px-8 py-4 bg-white border-b border-border/10 flex justify-center items-center gap-4 lg:gap-12 overflow-x-auto hide-scrollbar">
                 {steps.map((s, idx) => (
-                    <div key={s.id} className="flex items-center gap-3">
+                    <div key={s.id} className="flex items-center gap-2 lg:gap-3 shrink-0">
                         <div className="flex flex-col items-center gap-1">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all duration-300 ${currentStep === s.id ? 'bg-primary text-white scale-110 shadow-lg shadow-primary/20' : currentStep > s.id ? 'bg-green-500 text-white' : 'bg-bg-main text-text-dark/30'}`}>
-                                {currentStep > s.id ? <Check size={20} /> : s.id}
+                            <div className={`w-8 h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center font-bold transition-all duration-300 ${currentStep === s.id ? 'bg-primary text-white scale-110 shadow-lg shadow-primary/20' : currentStep > s.id ? 'bg-green-500 text-white' : 'bg-bg-main text-text-dark/30'}`}>
+                                {currentStep > s.id ? <Check size={16} className="lg:w-5 lg:h-5" /> : s.id}
                             </div>
-                            <span className={`text-[10px] font-bold tracking-widest ${currentStep === s.id ? 'text-primary' : 'text-text-dark/30'}`}>{s.title}</span>
+                            <span className={`text-[8px] lg:text-[10px] font-bold tracking-widest ${currentStep === s.id ? 'text-primary' : 'text-text-dark/30'}`}>{s.title}</span>
                         </div>
                         {idx < steps.length - 1 && (
-                            <div className="w-16 h-0.5 bg-border/30 rounded-full">
+                            <div className="w-8 lg:w-16 h-0.5 bg-border/30 rounded-full">
                                 <div className={`h-full bg-primary transition-all duration-500 rounded-full ${currentStep > s.id ? 'w-full' : 'w-0'}`} />
                             </div>
                         )}
@@ -131,11 +131,11 @@ export default function BouquetBuilder() {
                             initial={{ opacity: 0, scale: 0.98 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 1.02 }}
-                            className="w-full p-12 flex flex-col items-center justify-center text-center space-y-8"
+                            className="w-full p-6 lg:p-12 flex flex-col items-center justify-center text-center space-y-6 lg:space-y-8"
                         >
-                            <div className="max-w-md space-y-4">
-                                <h3 className="text-4xl font-serif font-bold text-text-dark">Set Your Target Budget</h3>
-                                <p className="text-text-dark/50 text-lg">Our florists will craft your bouquet to fit perfectly within this price point.</p>
+                            <div className="max-w-md space-y-2 lg:space-y-4">
+                                <h3 className="text-3xl lg:text-4xl font-serif font-bold text-text-dark">Set Your Target Budget</h3>
+                                <p className="text-text-dark/50 text-base lg:text-lg">Our florists will craft your bouquet to fit perfectly within this price point.</p>
                             </div>
                             
                             <div className="relative group max-w-sm w-full">
@@ -177,37 +177,39 @@ export default function BouquetBuilder() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="flex w-full h-full"
+                            className="flex flex-col lg:flex-row w-full h-full overflow-y-auto lg:overflow-hidden hide-scrollbar"
                         >
                             {/* Categories Sidebar */}
-                            <div className="w-64 border-r border-border/10 p-6 flex flex-col gap-2 bg-white">
-                                <span className="text-[10px] font-bold text-text-dark/30 tracking-[0.2em] mb-4 uppercase px-4">Categories</span>
-                                {categories.map(cat => (
-                                    <button
-                                        key={cat.id}
-                                        onClick={() => setActiveCategory(cat.id)}
-                                        className={`flex items-center gap-3 px-4 py-4 rounded-2xl font-bold transition-all group ${activeCategory === cat.id ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-text-dark/40 hover:bg-bg-main hover:text-text-dark'}`}
-                                    >
-                                        <cat.icon size={20} className={activeCategory === cat.id ? 'text-white' : 'group-hover:text-primary'} />
-                                        <span className="flex-1 text-left">{cat.label}</span>
-                                        <span className={`text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold ${activeCategory === cat.id ? 'bg-white/20 text-white' : 'bg-bg-main text-text-dark/30'}`}>
-                                            {cat.count}
-                                        </span>
-                                    </button>
-                                ))}
+                            <div className="w-full lg:w-64 border-b lg:border-b-0 lg:border-r border-border/10 p-4 lg:p-6 flex flex-col bg-white shrink-0">
+                                <span className="hidden lg:block text-[10px] font-bold text-text-dark/30 tracking-[0.2em] mb-4 uppercase px-4">Categories</span>
+                                <div className="flex flex-row lg:flex-col gap-2 overflow-x-auto hide-scrollbar pb-2 lg:pb-0">
+                                    {categories.map(cat => (
+                                        <button
+                                            key={cat.id}
+                                            onClick={() => setActiveCategory(cat.id)}
+                                            className={`flex items-center gap-2 lg:gap-3 px-4 py-2 lg:py-4 rounded-xl lg:rounded-2xl font-bold transition-all group shrink-0 ${activeCategory === cat.id ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-text-dark/40 hover:bg-bg-main hover:text-text-dark'}`}
+                                        >
+                                            <cat.icon size={20} className={activeCategory === cat.id ? 'text-white' : 'group-hover:text-primary'} />
+                                            <span className="text-sm lg:text-base lg:flex-1 text-left whitespace-nowrap">{cat.label}</span>
+                                            <span className={`hidden lg:flex text-[10px] w-5 h-5 rounded-full items-center justify-center font-bold ${activeCategory === cat.id ? 'bg-white/20 text-white' : 'bg-bg-main text-text-dark/30'}`}>
+                                                {cat.count}
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
 
                             {/* Elements Grid View */}
-                            <div className="flex-1 p-8 bg-white/50 overflow-y-auto hide-scrollbar">
-                                <div className="mb-8">
-                                    <div className="flex items-end justify-between mb-2">
-                                        <h3 className="text-2xl font-bold text-text-dark">Target Budget</h3>
-                                        <span className="text-3xl font-serif font-bold text-primary">₱{(parseInt(budget) || 0).toLocaleString()}</span>
+                            <div className="flex-1 p-4 lg:p-8 bg-white/50 lg:overflow-y-auto hide-scrollbar border-b lg:border-b-0">
+                                <div className="mb-6 lg:mb-8">
+                                    <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-2">
+                                        <h3 className="text-xl lg:text-2xl font-bold text-text-dark">Target Budget</h3>
+                                        <span className="text-2xl lg:text-3xl font-serif font-bold text-primary">₱{(parseInt(budget) || 0).toLocaleString()}</span>
                                     </div>
-                                    <p className="text-text-dark/40 text-sm">Select elements you'd like. Our team will handle quantities to fit your ₱{(parseInt(budget) || 0).toLocaleString()} budget.</p>
+                                    <p className="text-text-dark/40 text-xs lg:text-sm">Select elements you'd like. Our team will handle quantities to fit your ₱{(parseInt(budget) || 0).toLocaleString()} budget.</p>
                                 </div>
 
-                                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-6">
                                     {activeCategory === 'Flowers' && options.flowers.map((item) => (
                                         <ElementCard 
                                             key={item.name} 
@@ -267,9 +269,9 @@ export default function BouquetBuilder() {
                             </div>
 
                             {/* Wishlist Sidebar */}
-                            <div className="w-72 border-l border-border/10 p-8 flex flex-col bg-bg-main/30">
-                                <h4 className="text-[10px] font-bold text-text-dark/30 tracking-[0.2em] uppercase mb-8 text-center">Your Wishlist</h4>
-                                <div className="flex-1 space-y-4 overflow-y-auto hide-scrollbar">
+                            <div className="w-full lg:w-72 border-t lg:border-t-0 lg:border-l border-border/10 p-6 lg:p-8 flex flex-col bg-bg-main/30 shrink-0">
+                                <h4 className="text-[10px] font-bold text-text-dark/30 tracking-[0.2em] uppercase mb-4 lg:mb-8 text-center">Your Wishlist</h4>
+                                <div className="flex-1 space-y-4 lg:overflow-y-auto hide-scrollbar">
                                     {selectedFlowers.length === 0 && !ribbon && !wrapper && !filler ? (
                                         <p className="text-center text-text-dark/20 text-sm italic py-12">• No items selected yet</p>
                                     ) : (
@@ -300,11 +302,11 @@ export default function BouquetBuilder() {
                             initial={{ opacity: 0, scale: 1.02 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.98 }}
-                            className="w-full p-12 flex flex-col space-y-8"
+                            className="w-full p-6 lg:p-12 flex flex-col space-y-6 lg:space-y-8"
                         >
                             <div className="max-w-md">
-                                <h3 className="text-3xl font-serif font-bold text-text-dark mb-4">Final Touches</h3>
-                                <p className="text-text-dark/50 text-base">Add a heart-felt message and any special vision you have for this bouquet.</p>
+                                <h3 className="text-2xl lg:text-3xl font-serif font-bold text-text-dark mb-2 lg:mb-4">Final Touches</h3>
+                                <p className="text-text-dark/50 text-sm lg:text-base">Add a heart-felt message and any special vision you have for this bouquet.</p>
                             </div>
 
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -356,27 +358,27 @@ export default function BouquetBuilder() {
             </div>
 
             {/* Footer Navigation */}
-            <div className="px-8 py-6 border-t border-border/10 bg-white flex items-center justify-between">
+            <div className="px-4 lg:px-8 py-4 lg:py-6 border-t border-border/10 bg-white flex items-center justify-between">
                 <button
                     onClick={prevStep}
-                    className={`flex items-center gap-2 px-8 py-4 rounded-2xl font-bold transition-all ${currentStep === 1 ? 'opacity-0 pointer-events-none' : 'text-text-dark/40 hover:text-primary hover:bg-bg-main'}`}
+                    className={`flex items-center gap-1 lg:gap-2 px-4 lg:px-8 py-3 lg:py-4 rounded-xl lg:rounded-2xl text-sm lg:text-base font-bold transition-all ${currentStep === 1 ? 'opacity-0 pointer-events-none' : 'text-text-dark/40 hover:text-primary hover:bg-bg-main'}`}
                 >
-                    <ArrowRight size={20} className="rotate-180" /> Back
+                    <ArrowRight size={18} className="rotate-180 lg:w-5 lg:h-5" /> Back
                 </button>
 
                 {currentStep < steps.length ? (
                     <button
                         onClick={nextStep}
-                        className="flex items-center gap-2 px-12 py-4 bg-primary text-white rounded-2xl font-bold hover:bg-primary-dark transition-all shadow-xl shadow-primary/20 hover:-translate-y-1"
+                        className="flex items-center gap-1 lg:gap-2 px-6 lg:px-12 py-3 lg:py-4 bg-primary text-white rounded-xl lg:rounded-2xl text-sm lg:text-base font-bold hover:bg-primary-dark transition-all shadow-xl shadow-primary/20 hover:-translate-y-1"
                     >
-                        Next Step <ArrowRight size={20} />
+                        Next Step <ArrowRight size={18} className="lg:w-5 lg:h-5" />
                     </button>
                 ) : (
                     <button
                         onClick={handleGenerateSummary}
-                        className="flex items-center gap-2 px-12 py-4 bg-primary text-white rounded-2xl font-bold hover:bg-primary-dark transition-all shadow-xl shadow-primary/20 hover:-translate-y-1"
+                        className="flex items-center gap-1 lg:gap-2 px-6 lg:px-12 py-3 lg:py-4 bg-primary text-white rounded-xl lg:rounded-2xl text-sm lg:text-base font-bold hover:bg-primary-dark transition-all shadow-xl shadow-primary/20 hover:-translate-y-1"
                     >
-                        Review & Order <Save size={20} />
+                        Review & Order <Save size={18} className="lg:w-5 lg:h-5" />
                     </button>
                 )}
             </div>
